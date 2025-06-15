@@ -62,4 +62,10 @@ Für Fragen, Feedback oder Bug-Meldungen melde dich gerne unter:
 
 ---
 
+## Lizenz
+
+Airframe ist proprietär. Eine Nutzung oder Veränderung des Quellcodes ist nicht gestattet.
+
+---
+
 **Viel Spaß beim Spielen!** 🎮
