@@ -1,7 +1,7 @@
         const sessionID = Math.floor(1e14 + Math.random() * 9e14);
         const playerID = Math.floor(1000000 + Math.random() * 9000000);
         let currentUsername = '';
-        let highscore = 0;
+        let highscore = "0";
 
         function showUsernamePopup() {
             const popup = document.getElementById('usernamePopup');
@@ -56,6 +56,26 @@
             closeUsernamePopup();
         }
 
+        function random() {
+            const chars = '0123456789abcdefghijklmQ!@#$%^&*()-_=+|;:,.?012345678901234567890123456789';
+            let result = '';
+            for (let i = 0; i < 30; i++) {
+                const randomIndex = Math.floor(Math.random() * chars.length);
+                result += chars[randomIndex];
+            }
+            return result;
+        }
+
+        const secretKey = "airframe_main_53";
+        const cryptoHighscore = highscore;
+        sessionStorage.setItem('lastHighscore', highscore);
+
+        const encrypted = CryptoJS.AES.encrypt(cryptoHighscore.toString(), secretKey).toString();
+
+        const gamekey = random();
+        const event_param = "default";
+        const highscore_token = encrypted;
+
         function startGame() {
             const savedUsername = localStorage.getItem('username');
             if (savedUsername) {
@@ -67,7 +87,7 @@
                 document.body.style.filter = 'brightness(1.5)';
                 setTimeout(() => {
                     document.body.style.filter = 'brightness(1)';
-                    window.location.href = "game.html";
+                    window.location.href =`game.html?game_key=${gamekey}&event=${event_param}&highscore_token=${highscore_token}`;
                     alert(`Spiel startet für Pilot: ${savedUsername}`);
                 }, 200);
             } else {
