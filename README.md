@@ -23,14 +23,12 @@
 ## 📄 Impressum & Datenschutz
 
 **Airframe**  
-Musterstraße 1  
-12345 Musterstadt  
 Deutschland
 
-Kontakt: kontakt@airframe.de
+Kontakt: contact.airframe.game@gmail.com
 
 Verantwortlich für den Inhalt:  
-Max Mustermann, Musterstraße 1, 12345 Musterstadt
+Simon Schmitz, Graeserstraße 1, 52249 Eschweiler
 
 ### 🔒 Datenspeicherung
 
@@ -54,14 +52,13 @@ Diese Daten werden **nicht an Dritte weitergegeben**. Sie dienen allein dazu, de
 ## 🔧 Technische Details (falls relevant)
 
 - Speicherung via `localStorage`.
-- Auf Wunsch können Highscores später auch auf einen eigenen Firebase- oder Cloud-Backend-Server geladen werden.
 
 ---
 
 ## 📬 Support & Feedback
 
 Für Fragen, Feedback oder Bug-Meldungen melde dich gerne unter:  
-**kontakt@airframe.de**
+**contact.airframe.game@gmail.com**
 
 ---
 
