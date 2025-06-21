@@ -1,0 +1,18 @@
+{
+    "workbench.startupEditor": "none",
+    "emmet.triggerExpansionOnTab": true,
+    "files.autoSave": "afterDelay",
+    "emmet.useInlineCompletions": true,
+    "editor.suggest.snippetsPreventQuickSuggestions": true,
+    "liveServer.settings.donotShowInfoMsg": true,
+    "explorer.confirmDragAndDrop": false,
+    "php.validate.executablePath": "C:\\xampp\\php\\php.exe",
+    "php.executables": {
+        "default": "C:/xampp/php/php.exe"
+    },
+    "security.workspace.trust.untrustedFiles": "open",
+    "explorer.confirmDelete": false,
+    "liveServer.settings.donotVerifyTags": true,
+    "editor.inlineSuggest.enabled": false,
+    "liveServer.settings.port": 7777
+}

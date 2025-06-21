@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Simon Schmitz, Philipp Nestler, Aaron Bahrini">
+    <title>Airframe - Homescreen</title>
+    <link rel="icon" href="img/airframe_main_plane_icon-modified.png" type="image/png">
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="js/basic-logic.js"></script>
+    
+    <style>
+        * {
+            font-family: "Pixelify Sans";
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        body {
+            background: linear-gradient(180deg, #87CEEB 0%, #4682B4 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            color: #2c3e50;
+        }
+        
+        .clouds {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background-image: 
+                radial-gradient(ellipse 60px 20px at 100px 50px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(ellipse 80px 25px at 300px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(ellipse 70px 18px at 500px 40px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(ellipse 90px 30px at 700px 70px, rgba(255,255,255,0.5), transparent);
+            background-repeat: repeat-x;
+            background-size: 800px 150px;
+            animation: cloudMove 30s linear infinite;
+        }
+        
+        @keyframes cloudMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-800px); }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .title {
+            font-size: clamp(4rem, 12vw, 8rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: #2c3e50;
+            text-shadow: 
+                3px 3px 0px #ffffff,
+                6px 6px 0px #bdc3c7;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        
+        .menu-item {
+            background: #3498db;
+            border: 4px solid #2980b9;
+            color: #ffffff;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 1.2rem 3rem;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            position: relative;
+            min-width: 280px;
+            text-align: center;
+            
+            box-shadow: 
+                4px 4px 0px #2980b9,
+                8px 8px 0px #34495e;
+            
+            text-shadow: 2px 2px 0px #2980b9;
+        }
+        
+        .menu-item:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 
+                6px 6px 0px #2980b9,
+                10px 10px 0px #34495e;
+            background: #5dade2;
+            border-color: #3498db;
+        }
+        
+        .menu-item:active {
+            transform: translate(2px, 2px);
+            box-shadow: 
+                2px 2px 0px #2980b9,
+                4px 4px 0px #34495e;
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: #e74c3c;
+            border: 3px solid #c0392b;
+            padding: 1rem 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ffffff;
+            text-shadow: 1px 1px 0px #c0392b;
+            box-shadow: 3px 3px 0px #a93226;
+        }
+        
+        .score-value {
+            color: #ffffff;
+            font-size: 1.5rem;
+        }
+        
+        .bird {
+            position: absolute;
+            width: 16px;
+            height: 12px;
+            background: #2c3e50;
+            z-index: 5;
+            animation: fly 8s linear infinite;
+        }
+        
+        .bird::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: -4px;
+            width: 8px;
+            height: 8px;
+            background: #2c3e50;
+            animation: flap 0.5s ease-in-out infinite alternate;
+        }
+        
+        .bird::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            right: -4px;
+            width: 8px;
+            height: 8px;
+            background: #2c3e50;
+            animation: flap 0.5s ease-in-out infinite alternate reverse;
+        }
+        
+        @keyframes fly {
+            0% { 
+                left: -50px; 
+                top: 20%; 
+            }
+            100% { 
+                left: calc(100% + 50px); 
+                top: 25%; 
+            }
+        }
+        
+        @keyframes flap {
+            0% { transform: rotateZ(-20deg); }
+            100% { transform: rotateZ(20deg); }
+        }
+        
+        .bird.bird1 { animation-delay: 0s; }
+        .bird.bird2 { animation-delay: 3s; top: 30%; }
+        .bird.bird3 { animation-delay: 6s; top: 15%; }
+        
+        .sun {
+            position: absolute;
+            top: 5%;
+            right: 10%;
+            width: 80px;
+            height: 80px;
+            background: #f1c40f;
+            border-radius: 50%;
+            border: 4px solid #f39c12;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+            z-index: 3;
+        }
+        
+        .sun::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            right: -12px;
+            bottom: -12px;
+            background: 
+                linear-gradient(0deg, transparent 45%, #f39c12 48%, #f39c12 52%, transparent 55%),
+                linear-gradient(45deg, transparent 45%, #f39c12 48%, #f39c12 52%, transparent 55%),
+                linear-gradient(90deg, transparent 45%, #f39c12 48%, #f39c12 52%, transparent 55%),
+                linear-gradient(135deg, transparent 45%, #f39c12 48%, #f39c12 52%, transparent 55%);
+            animation: sunRotate 4s linear infinite;
+        }
+
+        #footer {
+            position: fixed;
+            bottom: 2vh;
+            left: 1vw;
+        }
+        
+        @keyframes sunRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .popup-content {
+            background: #3498db;
+            border: 6px solid #2980b9;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+            
+            box-shadow: 
+                6px 6px 0px #2980b9,
+                12px 12px 0px #34495e;
+        }
+        
+        .popup-overlay.show .popup-content {
+            transform: scale(1);
+        }
+        
+        .popup-title {
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-shadow: 
+                2px 2px 0px #2980b9,
+                4px 4px 0px #34495e;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .popup-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #ffffff;
+            text-shadow: 1px 1px 0px #2980b9;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        
+        .username-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            font-family: "Pixelify Sans";
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #ffffff;
+            border: 4px solid #2c3e50;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+            
+            box-shadow: 
+                3px 3px 0px #2c3e50,
+                6px 6px 0px #34495e;
+            
+            transition: all 0.1s ease;
+        }
+        
+        .username-input:focus {
+            outline: none;
+            transform: translate(-1px, -1px);
+            box-shadow: 
+                4px 4px 0px #2c3e50,
+                8px 8px 0px #34495e;
+        }
+        
+        .username-input::placeholder {
+            color: #95a5a6;
+            font-weight: 500;
+        }
+        
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .popup-button {
+            background: #27ae60;
+            border: 4px solid #229954;
+            color: #ffffff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 0.8rem 2rem;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            font-family: "Pixelify Sans";
+            
+            box-shadow: 
+                3px 3px 0px #229954,
+                6px 6px 0px #1e8449;
+            
+            text-shadow: 1px 1px 0px #229954;
+        }
+        
+        .popup-button:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 
+                4px 4px 0px #229954,
+                8px 8px 0px #1e8449;
+            background: #2ecc71;
+        }
+        
+        .popup-button:active {
+            transform: translate(1px, 1px);
+            box-shadow: 
+                2px 2px 0px #229954,
+                4px 4px 0px #1e8449;
+        }
+        
+        .popup-button.cancel {
+            background: #e74c3c;
+            border-color: #c0392b;
+            text-shadow: 1px 1px 0px #c0392b;
+            box-shadow: 
+                3px 3px 0px #c0392b,
+                6px 6px 0px #a93226;
+        }
+        
+        .popup-button.cancel:hover {
+            background: #ec7063;
+            box-shadow: 
+                4px 4px 0px #c0392b,
+                8px 8px 0px #a93226;
+        }
+        
+        .popup-button.cancel:active {
+            box-shadow: 
+                2px 2px 0px #c0392b,
+                4px 4px 0px #a93226;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 1rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 0px #ffffff;
+            margin-top: -1rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .error-message.show {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-item {
+                min-width: 240px;
+                padding: 1rem 2rem;
+                font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+            }
+            
+            .score-display {
+                position: static;
+                margin-bottom: 2rem;
+                align-self: flex-end;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .sun {
+                width: 60px;
+                height: 60px;
+                top: 8%;
+                right: 8%;
+            }
+            
+            .popup-content {
+                padding: 2rem;
+            }
+            
+            .popup-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .popup-button {
+                min-width: 200px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .menu-item {
+                min-width: 200px;
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .title {
+                margin-bottom: 2rem;
+            }
+            
+            .popup-content {
+                padding: 1.5rem;
+            }
+            
+            .username-input {
+                font-size: 1.2rem;
+                padding: 0.8rem 1rem;
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="clouds"></div>
+    <div class="sun"></div>
+    
+    <div class="bird bird1"></div>
+    <div class="bird bird2"></div>
+    <div class="bird bird3"></div>
+    
+    <div class="container">
+        <div class="score-display">
+            Best: <span id="highscore">0</span>
+        </div>
+        
+        <h1 class="title">Airframe</h1>
+        
+        <div class="menu">
+            <button class="menu-item" onclick="startGame()">Play</button>
+            <button class="menu-item" onclick="showScores()">Impressum</button>
+            <button class="menu-item" onclick="exitGame()">Quit</button>
+        </div>
+    </div>
+
+    <!-- Username Pop-up -->
+    <div class="popup-overlay" id="usernamePopup">
+        <div class="popup-content">
+            <h2 class="popup-title">Pilot Name</h2>
+            <p class="popup-text">Geben Sie Ihren Pilotennamen ein:</p>
+            <input type="text" 
+                   class="username-input" 
+                   id="usernameInput" 
+                   placeholder="Pilot Name"
+                   maxlength="20"
+                   autocomplete="off">
+            <div class="error-message" id="errorMessage">
+                Bitte geben Sie einen gültigen Namen ein!
+            </div>
+            <div class="popup-buttons">
+                <button class="popup-button" onclick="confirmUsername()">Start</button>
+                <button class="popup-button cancel" onclick="closeUsernamePopup()">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <section id="footer">
+        <p>Player-ID: <span id="player-id"></span></p>
+        <p>Session-ID: <span id="session-id"></span></p>
+        <p>Pilot: <span id="pilot-name">Unbekannt</span></p>
+    </section>
+</body>
+</html>

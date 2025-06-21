@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flugzeugspiel</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      background: skyblue;
+    }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="600"></canvas>
+<script>
+  const canvas = document.getElementById("gameCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const planeImg = new Image();
+  planeImg.src = "img/airframe_main_plane.png";
+
+  const plane = {
+    x: 180,
+    y: 500,
+    width: 50,
+    height: 50,
+    velocity: 0,
+    accel: 0.2,
+    maxSpeed: 5
+  };
+
+  let moveLeft = false;
+  let moveRight = false;
+  let lastTime = 0;
+  let obstacles = [];
+  let gameOver = false;
+
+  let rotation = 0; // sichtbare Rotation
+  let trail = [];   // Schweif
+  const maxTrail = 10;
+
+  let particles = [];
+
+  function createObstacle() {
+    const size = 40;
+    const x = Math.random() * (canvas.width - size);
+    obstacles.push({ x, y: -size, width: size, height: size, speed: 150 });
+  }
+
+  function drawPlane() {
+    ctx.save();
+    const centerX = plane.x + plane.width / 2;
+    const centerY = plane.y + plane.height / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.drawImage(planeImg, -plane.width / 2, -plane.height / 2, plane.width, plane.height);
+    ctx.restore();
+  }
+
+  function drawTrail() {
+    for (let i = 0; i < trail.length; i++) {
+      const t = trail[i];
+      const alpha = (i + 1) / trail.length * 0.3; // transparenter je älter
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(t.x + plane.width / 2, t.y + plane.height / 2);
+      ctx.rotate(t.rotation);
+      ctx.drawImage(planeImg, -plane.width / 2, -plane.height / 2, plane.width, plane.height);
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawObstacles() {
+    ctx.fillStyle = "red";
+    obstacles.forEach(ob => {
+      ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
+    });
+  }
+
+  function updateObstacles(dt) {
+    obstacles.forEach(ob => ob.y += ob.speed * dt);
+    obstacles = obstacles.filter(ob => ob.y < canvas.height);
+  }
+
+  function detectCollision() {
+    for (let ob of obstacles) {
+      if (
+        plane.x < ob.x + ob.width &&
+        plane.x + plane.width > ob.x &&
+        plane.y < ob.y + ob.height &&
+        plane.y + plane.height > ob.y
+      ) {
+        gameOver = true;
+        break;
+      }
+    }
+  }
+
+  function movePlane(dt) {
+    if (moveLeft) {
+      plane.velocity -= plane.accel;
+    } else if (moveRight) {
+      plane.velocity += plane.accel;
+    } else {
+      plane.velocity *= 0.2; // abbremsen
+    }
+
+    if (plane.velocity > plane.maxSpeed) plane.velocity = plane.maxSpeed;
+    if (plane.velocity < -plane.maxSpeed) plane.velocity = -plane.maxSpeed;
+
+    plane.x += plane.velocity;
+
+    if (plane.x < 0) {
+      plane.x = 0;
+      plane.velocity = 0;
+    }
+    if (plane.x + plane.width > canvas.width) {
+      plane.x = canvas.width - plane.width;
+      plane.velocity = 0;
+    }
+
+    let targetRotation = plane.velocity / plane.maxSpeed * 0.3;
+    rotation += (targetRotation - rotation) * 0.1;
+
+    trail.push({ x: plane.x, y: plane.y, rotation: rotation });
+    if (trail.length > maxTrail) trail.shift();
+  }
+
+  function generateParticles() {
+    if (Math.abs(plane.velocity) > 0.5) {
+      const count = 2;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: plane.x + plane.width / 2 + (Math.random() - 0.5) * 10,
+          y: plane.y + plane.height,
+          radius: 2 + Math.random() * 2,
+          alpha: 1,
+          dx: (Math.random() - 0.5) * 0.5,
+          dy: 1 + Math.random() * 1
+        });
+      }
+    }
+  }
+
+  function updateAndDrawParticles(dt) {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.dx;
+      p.y += p.dy;
+      p.alpha -= 0.02;
+      if (p.alpha <= 0) {
+        particles.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = "orange";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") moveLeft = true;
+    if (e.key === "ArrowRight") moveRight = true;
+  });
+
+  document.addEventListener("keyup", e => {
+    if (e.key === "ArrowLeft") moveLeft = false;
+    if (e.key === "ArrowRight") moveRight = false;
+  });
+
+  function gameLoop(timestamp) {
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+
+    if (gameOver) {
+      ctx.fillStyle = "black";
+      ctx.font = "40px Arial";
+      ctx.fillText("Game Over", 100, 300);
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    movePlane(dt);
+    generateParticles();
+    updateAndDrawParticles(dt);
+    drawTrail();
+    drawPlane();
+    drawObstacles();
+    updateObstacles(dt);
+    detectCollision();
+    requestAnimationFrame(gameLoop);
+  }
+
+  planeImg.onload = () => {
+    setInterval(createObstacle, 1000);
+    requestAnimationFrame(gameLoop);
+  };
+</script>
+</body>
+</html>
